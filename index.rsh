@@ -15,7 +15,7 @@ export const main = Reach.App(() => {
     const Donor = API("Donor", {
         //interface
         donateFunds: Fun([UInt], Bool),
-        getRefund: Fun([], Bool),
+        // getRefund: Fun([], Bool),  //to be implemented
     });
 
     const ObserveGoal = API("ObserveGoal", {
@@ -28,11 +28,11 @@ export const main = Reach.App(() => {
 
     //declassify the details and publish it for everyone
     Donee.only(() => {
-        const address = declassify(interact.Address);
+        const doneeAddress = declassify(interact.doneeAddr);
         const deadline = declassify(interact.deadline);
         const goal = declassify(interact.goal);
     });
-    Donee.publish(address, deadline, goal);
+    Donee.publish(doneeAddress, deadline, goal);
     commit();
 
     Donee.publish();
@@ -43,22 +43,23 @@ export const main = Reach.App(() => {
     //keep track of all addr and amount in a map object
     const donors = new Map(Address, UInt);
     //verying the donating address in the set objext
-    const set = new set();
+    const set = new Set();
 
     //donors can keep donating till dateline (while loop)
     const [keepGoing, AccBalance, numDonors] = parallelReduce([true, 0, 0])
         .define(() => {
             const donate = (who, donation) => {
                 //check that donors haven't donated and prevent donation of 0 token
-                assert(isNone(donors[this]), "not yet in the map");
-                assert(!set.member(who), "not in the set yet");
-                assert(donation != 0, "zero donations not allowed");
+                //using dynamic assertion since we are in a loop
+                check(isNone(donors[this]), "not yet in the map");
+                check(!set.member(who), "not in the set yet");
+                check(donation != 0, "zero donations not allowed");
 
                 //add donation to the map and set object
                 return () => {
                     donors[who] = donation;
                     set.insert(who);
-                    return [keepGoing, AccBalance + donation, numDonors++];
+                    return [keepGoing, AccBalance + donation, numDonors+1];
                 };
             };
         })
@@ -83,7 +84,7 @@ export const main = Reach.App(() => {
             }
         )
         //deadline conditions
-        .timeout(relativeTimeout(deadline), () => {
+        .timeout(relativeTime(deadline), () => {
             const [[], success] = call(ObserveGoal.timesUp);
             success(true);
             //keepGoing becomes false since time has elapsed
@@ -94,5 +95,19 @@ export const main = Reach.App(() => {
 
     //goal reached if account balance equals to the goal)
     const outcome = AccBalance >= goal;
+    commit();
 
+    //show the outcome of donations
+    const [[], view] = call(ObserveGoal.goalOutcome);
+    view(outcome);
+
+    //transfer tokens from the contract to the donee if the goal is reached
+    if (outcome) {
+        transfer(balance()).to(Donee);
+        commit();
+        exit();
+    }
+    transfer(balance()).to(Donee);
+    commit();
+    exit();
 });
