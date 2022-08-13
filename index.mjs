@@ -15,11 +15,11 @@ const start = async (goal) => {
   const donee = await stdlib.newTestAccount(startingBalance);
   const donors = await stdlib.newTestAccounts(3, startingBalance);
 
-  //display starting balance of donee and donors
-  for (const who of [donee, ...donors]) {
+  //display starting balance of all the donors
+  for (const who of [...donors]) {
     console.log(
-      stdlib.formatAddress(who),
-      " has ",
+      `The starting balance of donor: ${stdlib.formatAddress(who)}`,
+      " is ",
       fmt(await stdlib.balanceOf(who))
     );
   }
@@ -27,56 +27,27 @@ const start = async (goal) => {
   const getBalance = async (who) =>
     fmt(stdlib.parseCurrency(await stdlib.balanceOf(who), 0));
 
-  //display initial balance
-  console.log(`the initial balance of donee is ${await getBalance(donee)}`);
+  //display initial balance of donee
+  console.log(`The address of donee is: ${stdlib.formatAddress(donee)}`);
+  console.log(`The starting balance of donee is: ${await getBalance(donee)}`);
 
   //display the target goal
   console.log(`the donations target goal is: ${fmt(targetGoal)}`);
 
-  //donee contract
-  ctcDonee = donee.contract(backend);
+  //connect donee contract to the backend api
+  const ctcDonee = donee.contract(backend);
 
-  try {
-    await ctcDonee.p.Donee({
+  await Promise.call(
+    ctcDonee.p.Donee({
       doneeAddr: donee.networkAccount,
       deadline: deadline,
       goal: goal,
       ready: () => {
         console.log("contract is deployed by the donee.");
       },
-    });
-  } catch (error) {
-    throw error;
-  }
+    })
+  );
 
-  //donors address to connect to the contract
-  const ctcDonors = (donor) =>
-    donors[donor].contract(backend, ctcDonee.getInfo());
-
-  //donor calls to the contract
-  const donate = async (donor, amount) => {
-    const user = [donor];
-    const ctcCall = ctcDonors(donor);
-
-    //call to the backend Donor Api
-    await ctcCall.apis.Donor.donateFunds(amount);
-    //display a donation address and amount donated
-    console.log(`a new donor with address ${stdlib.formatAddress(donor)} 
-        has donated ${fmt(await stdlib.parseCurrency(amount))}`);
-  };
-
-  //test the call to donation api starting from first donor at index 0
-  await donate(0, 8);
-  await donate(1, 12);
-
-  //display the ending balance of donee and donors
-  for (const who of [donee, ...donors]) {
-    console.log(
-      stdlib.formatAddress(who),
-      " has ",
-      fmt(await stdlib.balanceOf(who))
-    );
-  }
-}
+};
 
 await start(30);
