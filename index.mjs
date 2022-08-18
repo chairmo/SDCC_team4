@@ -37,16 +37,15 @@ const start = async (goal) => {
   //connect donee contract to the backend api
   const ctcDonee = donee.contract(backend);
 
-  await Promise.call(
-    ctcDonee.p.Donee({
+  
+  await ctcDonee.p.Donee({
       doneeAddr: donee.networkAccount,
       deadline: deadline,
       goal: goal,
       ready: () => {
         console.log("contract is deployed by the donee.");
       },
-    })
-  );
+  })
 
 };
 
