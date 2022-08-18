@@ -51,7 +51,7 @@ export const main = Reach.App(() => {
             const donate = (who, donation) => {
                 //check that donors haven't donated and prevent donation of 0 token
                 //using dynamic assertion since we are in a loop
-                check(isNone(donors[this]), "not yet in the map");
+                check(isNone(donors[who]), "not yet in the map");
                 check(!set.member(who), "not in the set yet");
                 check(donation != 0, "zero donations not allowed");
 
