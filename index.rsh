@@ -3,9 +3,9 @@
 
 /**the contract deployer serves as the only participant */
 export const main = Reach.App(() => {
-    const Donee = Participant("Donee", {
+    const Receiver = Participant("Receiver", {
         //interface
-        doneeAddr: Address,
+        receiverAddr: Address,
         deadline: UInt,
         goal: UInt,
         ready: Fun([], Null), //to show deployed contract ready to receive funds
@@ -27,18 +27,18 @@ export const main = Reach.App(() => {
     init();
 
     //declassify the details and publish it for everyone
-    Donee.only(() => {
-        const doneeAddress = declassify(interact.doneeAddr);
+    Receiver.only(() => {
+        const receiverAddress = declassify(interact.receiverAddr);
         const deadline = declassify(interact.deadline);
         const goal = declassify(interact.goal);
     });
-    Donee.publish(doneeAddress, deadline, goal);
+    Receiver.publish(receiverAddress, deadline, goal);
     commit();
 
-    Donee.publish();
+    Receiver.publish();
 
     //indicate that contract is deployed and ready
-    Donee.interact.ready();
+    Receiver.interact.ready();
 
     //keep track of all addr and amount in a map object
     const donors = new Map(Address, UInt);
@@ -65,9 +65,9 @@ export const main = Reach.App(() => {
         })
         /**ensure that the contract balance is greater or equal to account balance
          * and also verifying that the set size is equal to the number of donors*/
-        .invariant(balance() >= AccBalance && set.Map.size() == numDonors)
+        .invariant( set.Map.size() == numDonors)
         .while(keepGoing)
-        //call the doantion api
+        //call the donation api
         .api(
             Donor.donateFunds,
             //verify that the donor satisfies the conditions in the donate object
@@ -87,11 +87,12 @@ export const main = Reach.App(() => {
         .timeout(relativeTime(deadline), () => {
             const [[], success] = call(ObserveGoal.timesUp);
             success(true);
+            
             //keepGoing becomes false since time has elapsed
             return [false, AccBalance, numDonors];
         });
     //ensure that the contract balance is greater or equal to account balance
-    assert(balance() >= AccBalance);
+    // assert(balance() >= AccBalance);
 
     //goal reached if account balance equals to the goal)
     const outcome = AccBalance >= goal;
@@ -102,12 +103,12 @@ export const main = Reach.App(() => {
     view(outcome);
 
     //transfer tokens from the contract to the donee if the goal is reached
-    if (outcome) {
-        transfer(balance()).to(Donee);
+    if (AccBalance != 0) {
+        transfer(balance()).to(Receiver);
         commit();
         exit();
     }
-    transfer(balance()).to(Donee);
+    transfer(balance()).to(Receiver);
     commit();
     exit();
 });
