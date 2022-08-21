@@ -12,7 +12,7 @@ const start = async (goal) => {
 
   //create 3 donors and one donee with starting balance of 100
   const fmt = (x) => stdlib.formatCurrency(x, 4);
-  const donee = await stdlib.newTestAccount(startingBalance);
+  const receiver = await stdlib.newTestAccount(startingBalance);
   const donors = await stdlib.newTestAccounts(3, startingBalance);
 
   //display starting balance of all the donors
@@ -27,26 +27,78 @@ const start = async (goal) => {
   const getBalance = async (who) =>
     fmt(stdlib.parseCurrency(await stdlib.balanceOf(who), 0));
 
-  //display initial balance of donee
-  console.log(`The address of donee is: ${stdlib.formatAddress(donee)}`);
-  console.log(`The starting balance of donee is: ${await getBalance(donee)}`);
+  //display initial balance of receiver
+  console.log(`The address of receiver is: ${stdlib.formatAddress(receiver)}`);
+  console.log(`The starting balance of receiver is: ${await getBalance(receiver)}`);
 
   //display the target goal
   console.log(`the donations target goal is: ${fmt(targetGoal)}`);
 
-  //connect donee contract to the backend api
-  const ctcDonee = donee.contract(backend);
+  //connect reciever contract to the backend api
+  const ctcRec = receiver.contract(backend);
 
-  
-  await ctcDonee.p.Donee({
-      doneeAddr: donee.networkAccount,
-      deadline: deadline,
-      goal: goal,
-      ready: () => {
-        console.log("contract is deployed by the donee.");
-      },
-  })
+ try {
+   await ctcRec.p.Receiver({
+     receiverAddr: receiver.networkAccount,
+     deadline: deadline,
+     goal: goal,
+     // Defines the receivers ready() function.
+     ready: () => {
+       ctcRec.getInfo().then(info => {
+        console.log(`The contract address is: ${info}`); 
+       })
+       
+       // Arbitrary error.
+       throw 42;
+     },
+   });
+ } catch (e) {
+   if (e !== 42) {
+     throw e;
+   }
+ }
 
+  //connect donors addresses to the contract
+  const ctcDonors = (donor) =>
+    donors[donor].contract(backend, ctcRec.getInfo());
+
+  //donor calls to the contract backend and Donor api
+  const donate = async (donor, amount) => {
+    const user = [donor];
+    const ctcCall = ctcDonors(donor);
+
+    await ctcCall.apis.Donor.donateFunds(fmt(stdlib.parseCurrency(amount)));
+    //display a donation address and amount donated
+    console.log((donor), 
+        ` donated ${await fmt(stdlib.parseCurrency(amount))}`);
+  };
+
+  const timesUp = async () => {
+    await ctcRec.apis.ObserveGoal.timesUp();
+    console.log("deadline has passed");
+  };
+
+  const seeOutcome = async () => {
+    const outcome = await ctcRec.apis.ObserveGoal.goalOutcome();
+    console.log(
+      `The donations ${ outcome ? `did` : `did not`} meet it's goal`
+    );
+    return outcome;
+  };
+
+  //test the call to donation api starting from first donor at index 0
+  await donate(0, 9);
+  await donate(1, 7);
+
+  //wait for funds to reach deadline
+  console.log("waiting till deadline.");
+  await stdlib.wait(deadline);
+
+  await timesUp();
+  await seeOutcome();
+
+  //display the ending balance of receiver and donors
 };
 
-await start(30);
+await start(15);
+// await start(18);
