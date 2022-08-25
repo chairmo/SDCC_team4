@@ -11,7 +11,7 @@ const defaults = {
   defaultGoal: "20 ETH",
   defaultDeadline: "14 days",
   defaultFundAmt: "10",
-  defaultWager: "3",
+  defaultAmount: "3",
   standardUnit,
 };
 
@@ -26,25 +26,32 @@ class App extends React.Component {
     const addr = acc.getAddress();
     const balAtomic = await reach.balanceOf(acc);
     const bal = reach.formatCurrency(balAtomic, 4);
-    this.setState({ acc,addr, bal });
+    this.setState({ acc, addr, bal });
     if (await reach.canFundFromFaucet()) {
       this.setState({ view: "CreateCampaign" });
     }
   }
+
+  async donate(amount) {
+    /**YET TO FIX PAYMENT TO THE CONTRACT USING THE DONATION API */
+    const amtq = reach.parseCurrency(amount); // UInt
+    this.setState({ view: "ThankYou", amtq });
+  }
   async createCampaign(goal, deadline) {
-    /**ERROR FETCHING CONTRACT ADDRESS */
-    const ctc = this.state.acc.contract(backend);
-    backend.Receiver(ctc, this);
-    const ctcInfoStr = JSON.stringify( ctc.getInfo(), null, 2);
-    this.setState({ view: "Campaign", ctcInfoStr, goal, deadline });
+    this.setState({ view: "Campaign", goal, deadline });
   }
   async donation() {
     this.setState({ view: "Donation" });
+  }
+
+  async selectDonate() {
+    this.setState({ view: "SetAmount" });
   }
 
   render() {
     return renderView(this, AppViews);
   }
 }
+
 
 renderDOM(<App />);

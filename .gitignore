@@ -1,2 +1,6 @@
 .reach
 .vscode
+node_modules
+.dockerignore
+package.json
+yarn.lock
