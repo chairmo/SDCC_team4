@@ -9,7 +9,7 @@ exports.Wrapper = class extends React.Component {
     return (
       <div className="App">
         <header className="App-header" id="root">
-          <h1>CrowdFunding Campaign </h1>
+          <h2>CrowdFunding Campaign </h2>
           {content}
         </header>
       </div>
@@ -72,28 +72,18 @@ exports.CreateCampaign = class extends React.Component {
 };
 
 exports.Campaign = class extends React.Component {
-  async copyToClipboard(button) {
-    const { ctcInfoStr } = this.props;
-    navigator.clipboard.writeText(ctcInfoStr);
-    const origInnerHTML = button.innerHTML;
-    button.innerHTML = "Copied!";
-    button.disabled = true;
-    await sleep(1000);
-    button.innerHTML = origInnerHTML;
-    button.disabled = false;
-  }
 
   render() {
-    const { ctcInfoStr, goal, deadline } = this.props;
+    const {ctcAddr, goal, deadline } = this.props;
     return (
       <div>
         <h4>Campaign Target Goal: {goal}</h4>
         <h4>Campaign Deadline: {deadline}</h4>
-        <br /> Please give them this contract info:
-        <pre className="ContractInfo">{ctcInfoStr}</pre>
-        <button onClick={(e) => this.copyToClipboard(e.currentTarget)}>
-          Copy to clipboard
-        </button>
+        {/* <h4>Donation wallet: {ctcAddr}</h4> */}
+        <h5>
+          <br /> Congratulations you have successfully created a funding
+          campaign.
+        </h5>
       </div>
     );
   }
@@ -105,7 +95,7 @@ exports.Donation = class extends React.Component {
     const amt = (this.state || {}).amt || defaultFundAmt;
     return (
       <div>
-        <h3>Fund account</h3>
+        <h3>Fund your account</h3>
         <br />
         <h5>Address: {addr}</h5>
         Balance: {bal} {standardUnit}
@@ -120,9 +110,39 @@ exports.Donation = class extends React.Component {
           onChange={(e) => this.setState({ amt: e.currentTarget.value })}
         />
         <button onClick={() => parent.fundAccount(amt)}>Fund Account</button>
-        <button onClick={() => parent.skipFundAccount()}>donate</button>
+        <button onClick={() => parent.selectDonate()}>donate</button>
       </div>
     );
   }
 }
+exports.SetAmount = class extends React.Component {
+  render() {
+    const { parent, defaultAmount, standardUnit } = this.props;
+    const amount = (this.state || {}).amount || defaultAmount;
+    return (
+      <div>
+        <input
+          type="number"
+          placeholder={defaultAmount}
+          onChange={(e) => this.setState({ amount: e.currentTarget.value })}
+        />{" "}
+        {standardUnit}
+        <br />
+        <button onClick={() => parent.donate(amount)}>Amount to Donate</button>
+      </div>
+    );
+  }
+};
+
+exports.ThankYou = class extends React.Component {
+  render() {
+    const {amtq, standardUnit} = this.props;
+    return (
+      <div>
+        You have successfully donated {amtq} {standardUnit}. Thank You
+      </div>
+    );
+  }
+};
+
 export default exports;
