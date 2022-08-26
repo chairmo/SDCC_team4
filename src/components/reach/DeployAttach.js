@@ -53,7 +53,7 @@ export const AttachButton = () => {
     const handleClose = () => setShow(false);
 
     const attach = async (ctcInfo) => {
-        // Bilgisi verilen kontrata bağlan
+        // // Bilgisi verilen kontrata bağlan
         // const ctc = await account.attach(Backend, JSON.parse(ctcInfo));
 
         // // Uygulama sayfasında katılımcıyı tanımlamak için kontratı 
@@ -78,7 +78,6 @@ export const AttachButton = () => {
 
 const AttachModal = ({ show, handleClose, attach }) => {
     const handleAttach = () => {
-        // Kontrat bilgilerini çek
         const info = document.querySelector("#ctcArea").value;
         attach(info);
     }

@@ -15,8 +15,8 @@ import { loadStdlib } from "@reach-sh/stdlib";
 
 const Home = () => {
 
-    // const [account2, setAccount, , setBalance, ctcInfo, setctcInfo] = useContext(Context);
-    const account = "";
+    // const [account, setAccount, , setBalance, ctcInfo, setctcInfo] = useContext(Context);
+    const account = " ";
 
     
     return account !== "" ? (
