@@ -74,12 +74,12 @@ exports.CreateCampaign = class extends React.Component {
 exports.Campaign = class extends React.Component {
 
   render() {
-    const { ctcInfoSt, goal, deadline } = this.props;
+    const { ctcInfoStr, goal, deadline } = this.props;
     return (
       <div>
         <h4>Campaign Target Goal: {goal}</h4>
         <h4>Campaign Deadline: {deadline}</h4>
-        <h4>Donation wallet: {ctcInfoSt}</h4>
+        <h4>Donation wallet: {ctcInfoStr}</h4>
         <h5>
           <br /> Congratulations you have successfully created a funding
           campaign.
