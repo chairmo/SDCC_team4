@@ -12,6 +12,7 @@ const defaults = {
   defaultDeadline: "14 days",
   defaultFundAmt: "10",
   defaultAmount: "3",
+  receiverAddress: "Paste Address Here",
   standardUnit,
 };
 
@@ -32,18 +33,34 @@ class App extends React.Component {
     }
   }
 
-  async donate(amount) {
+  async donate() {
     /**YET TO FIX PAYMENT TO THE CONTRACT USING THE DONATION API */
-    const amtq = reach.parseCurrency(amount); // UInt
+    const amtq = await reach.transfer(this.state.acc,
+      this.state.receiver, reach.parseCurrency(amount));
     this.setState({ view: "ThankYou", amtq });
   }
-  async createCampaign(goal, deadline) {
-    this.setState({ view: "Campaign", goal, deadline });
+  // setGoal(goal) {
+  //   this.setState({ view: "CreateCampaign", goal });
+  // }
+
+  async createCampaign(goal) {
+    /**CONTRACT  */
+    const ctc = this.state.acc.contract(backend);
+    this.goal = reach.parseCurrency(goal);
+    this.deadline = { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector];
+    this.receiverAddr = this.state.acc;
+    backend.Receiver(ctc, this);
+    const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null, 2);
+    this.setState({ view: "Campaign", ctcInfoStr});
   }
   async donation() {
     this.setState({ view: "Donation" });
   }
 
+  async fundAccount(fundAmount) {
+    await reach.fundFromFaucet(this.state.acc, reach.parseCurrency(fundAmount));
+    this.setState({ view: "SetAmount" });
+  }
   async selectDonate() {
     this.setState({ view: "SetAmount" });
   }

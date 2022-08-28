@@ -39,7 +39,7 @@ exports.CreateCampaign = class extends React.Component {
     } = this.props;
     /**ERROR UPDATING THE PARENT STATE WITH GOAL AND DEADLINE */
     const goal = (this.state || {}).goal || defaultGoal;
-    const deadline = (this.state || {}).deadline || defaultDeadline;
+    // const deadline = (this.state || {}).deadline || defaultDeadline;
     return (
       <div>
         <h5>Connected: {addr}</h5>
@@ -62,7 +62,7 @@ exports.CreateCampaign = class extends React.Component {
           }
         />
         <hr />
-        <button onClick={() => parent.createCampaign(goal, deadline)}>
+        <button onClick={() => parent.createCampaign(goal)}>
           Create Campaign
         </button>
         <button onClick={() => parent.donation()}>Donation</button>
@@ -74,12 +74,12 @@ exports.CreateCampaign = class extends React.Component {
 exports.Campaign = class extends React.Component {
 
   render() {
-    const {ctcAddr, goal, deadline } = this.props;
+    const { ctcInfoSt, goal, deadline } = this.props;
     return (
       <div>
         <h4>Campaign Target Goal: {goal}</h4>
         <h4>Campaign Deadline: {deadline}</h4>
-        {/* <h4>Donation wallet: {ctcAddr}</h4> */}
+        <h4>Donation wallet: {ctcInfoSt}</h4>
         <h5>
           <br /> Congratulations you have successfully created a funding
           campaign.
@@ -117,18 +117,27 @@ exports.Donation = class extends React.Component {
 }
 exports.SetAmount = class extends React.Component {
   render() {
-    const { parent, defaultAmount, standardUnit } = this.props;
-    const amount = (this.state || {}).amount || defaultAmount;
+    const { parent, defaultAmount, standardUnit, receiverAddress } = this.props;
+    // const amount = (this.state || {}).amount || defaultAmount;
     return (
       <div>
+        <h5>Enter amount to donate</h5>
         <input
           type="number"
           placeholder={defaultAmount}
           onChange={(e) => this.setState({ amount: e.currentTarget.value })}
         />{" "}
         {standardUnit}
+        
+        <h5>Contract Address</h5>
+        <input
+          type="string"
+          placeholder={receiverAddress}
+          onChange={(e) => this.setState({ receiver: e.currentTarget.value })}
+        />
         <br />
-        <button onClick={() => parent.donate(amount)}>Amount to Donate</button>
+        <hr/>
+        <button onClick={() => parent.donate()}>Amount to Donate</button>
       </div>
     );
   }
